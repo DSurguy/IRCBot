@@ -13,7 +13,7 @@ function MyService(bot){
     this.bot = bot;
 
     //service runtime code
-    doStuff();
+    //doStuff();
 };
 MyService.prototype.doSomething = function (){};
 
@@ -23,37 +23,41 @@ myBot.use('MyService', MyService);
 
 
 /* Sample Plugin Creation */
-function MyPlugin(bot, MyService){
+function MyPlugin(name, bot, InjectedServices){
+    //name is passed in so that services or commands can be 
+    //"scoped" to the plugin namespace
+    this.name = name;
     this.bot = bot;
-    this.MyService = MyService;
+    this.MyService = InjectedServices.MyService;
     
-    //create a scoped service
-    bot.scope(this).use('SomeService', {
+    //create a "scoped" service using the plugin name
+    //that was originally passed to bot.use
+    bot.use(name+'SomeService', {
         doSomething: function (){}
     });
     
     //create a scoped command
-    bot.scope(this).use('subCmd', function (bot, SomeService, MyService){
+    bot.scope(this).use('subCmd', function (name, bot, InjectedServices){
+        this.name = name;
         this.bot = this.bot;
-        this.SomeService = SomeService;
-        this.MyService = this.MyService;
+        this.SomeService = InjectedServices.SomeService;
+        this.MyService = InjectedServices.MyService;
         
         //command handler
         this.execute = function (messageData, paramArr, paramObj){
             //run this on !botName plugin subCmd
-            MyService.doSomething();
-            SomeService.doSomething();
+            this.MyService.doSomething();
+            this.SomeService.doSomething();
             this.bot.irc.say(messageData.from, "Test IRC Message");
         };
     }, [
-        //use scoped service
-        bot.scope(this).service('SomeService'),
-        //use global service
+        //use the "scoped" service
+        name+'SomeService',
         'MyService'
     ]);
 };
 //because this plugin has an execute, it can't be injected elsewhere
-MyCommand.prototype.execute = function (messageData, paramArr, paramObj){
+MyPlugin.prototype.execute = function (messageData, paramArr, paramObj){
     //run this on !botName plugin
     this.bot.irc.say(messageData.from, "Use a sub command, or maybe not");
 };
