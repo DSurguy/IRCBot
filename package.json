@@ -4,7 +4,9 @@
   "description": "An IRC bot framework built on nodejs.",
   "main": "index.js",
   "scripts": {
-    "test": "istanbul cover node_modules/jasmine/bin/jasmine.js -- JASMINE_CONFIG_PATH=jasmine.json"
+    "test": "mocha tests",
+    "test.watch": "mocha tests --reporter min --watch",
+    "coverage": "mocha tests --reporter mocha-istanbul"
   },
   "repository": {
     "type": "git",
@@ -17,7 +19,10 @@
   },
   "homepage": "https://github.com/DSurguy/IRCBot#readme",
   "devDependencies": {
+    "chai": "^3.4.1",
     "istanbul": "^0.4.1",
-    "jasmine": "^2.4.1"
-  }
+    "mocha": "^2.3.4",
+    "mocha-istanbul": "^0.2.0"
+  },
+  "dependencies": {}
 }
