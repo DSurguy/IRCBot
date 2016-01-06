@@ -4,10 +4,7 @@ var IRCBot = require('../bot/ircbot.js');
 describe('IRCBot constructor', () => {
     it('should clone the config to avoid reference issues', () => {
         var testConfig = {
-            name: 'test',
-            irc: {
-                host: 'test'
-            }
+            name: 'test'
         };
         
         var myBot = new IRCBot(testConfig);
@@ -21,21 +18,16 @@ describe('IRCBot constructor', () => {
             var myBot = new IRCBot({});
         }).to.throw();
     });
-    
-    it('should throw an error if config.irc is not defined', () => {
-        expect(() => {
-            var myBot = new IRCBot({
-                name: 'test'
-            });
-        }).to.throw();
+});
+
+describe('Class Methods', () => {
+    var myBot;
+    beforeEach(() => {
+        myBot = new IRCBot({
+            name: 'test'
+        });
     });
-    
-    it('should throw an error if config.irc.host is not defined', () => {
-        expect(() => {
-            var myBot = new IRCBot({
-                name: 'test',
-                irc: {}
-            });
-        }).to.throw();
+    it('should contain a use method', () => {
+        expect(myBot.use).to.be.instanceof(Function);
     });
 });

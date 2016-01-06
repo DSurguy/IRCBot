@@ -1,3 +1,4 @@
+"use strict";
 var extend = require('extend');
 
 module.exports = class IRCBot {
@@ -7,13 +8,9 @@ module.exports = class IRCBot {
         if( this.config.name === undefined ){
             throw new Error('IRCBot.Constructor: config.name is undefined');
         }
+    };
+    
+    use(){
         
-        if( this.config.irc === undefined ){
-            throw new Error('IRCBot.Constructor: config.irc is undefined');
-        }
-        
-        if( this.config.irc.host === undefined ){
-            throw new Error('IRCBot.Constructor: config.irc.host is undefined');
-        }
-    }
+    };
 };
