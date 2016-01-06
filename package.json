@@ -1,0 +1,28 @@
+{
+  "name": "ircbot",
+  "version": "0.0.1",
+  "description": "An IRC bot framework built on nodejs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests",
+    "test.watch": "mocha tests --reporter min --watch",
+    "coverage": "mocha tests --reporter mocha-istanbul"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DSurguy/IRCBot.git"
+  },
+  "author": "Surguy.Derek@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DSurguy/IRCBot/issues"
+  },
+  "homepage": "https://github.com/DSurguy/IRCBot#readme",
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "istanbul": "^0.4.1",
+    "mocha": "^2.3.4",
+    "mocha-istanbul": "^0.2.0"
+  },
+  "dependencies": {}
+}
