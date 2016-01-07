@@ -6,13 +6,19 @@
   "scripts": {
     "test": "mocha tests",
     "test.watch": "mocha tests --reporter min --watch",
-    "coverage": "mocha tests --reporter mocha-istanbul"
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- tests"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DSurguy/IRCBot.git"
   },
-  "author": "Surguy.Derek@gmail.com",
+  "author": {
+    "name": "Derek Surguy",
+    "email": "Surguy.Derek@gmail.com"
+  },
+  "contributors": [{
+    "name": "casmith"
+  }],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/DSurguy/IRCBot/issues"
@@ -21,8 +27,7 @@
   "devDependencies": {
     "chai": "^3.4.1",
     "istanbul": "^0.4.1",
-    "mocha": "^2.3.4",
-    "mocha-istanbul": "^0.2.0"
+    "mocha": "^2.3.4"
   },
   "dependencies": {}
 }
