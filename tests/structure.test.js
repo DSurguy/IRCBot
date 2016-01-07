@@ -1,7 +1,19 @@
 var expect = require('chai').expect;
-var IRCBot = require('../bot/ircbot.js');
+var IRCBot = require('../src/ircbot.js');
 
 describe('IRCBot constructor', () => {
+    it('should allow construction with no config', () => {
+        var myBot = new IRCBot();
+        
+        expect(myBot).to.exist;
+    });
+    it('should allow construction with config', () => {
+        var myBot = new IRCBot({
+            name: 'test'
+        });
+        
+        expect(myBot).to.exist;
+    });
     it('should clone the config to avoid reference issues', () => {
         var testConfig = {
             name: 'test'
@@ -11,12 +23,6 @@ describe('IRCBot constructor', () => {
         
         expect(testConfig).to.not.equal(myBot.config);
         expect(testConfig).to.deep.equal(myBot.config);
-    });
-    
-    it('should throw an error if config.name is not defined', () => {
-        expect(() => {
-            var myBot = new IRCBot({});
-        }).to.throw();
     });
 });
 
@@ -29,5 +35,14 @@ describe('Class Methods', () => {
     });
     it('should contain a use method', () => {
         expect(myBot.use).to.be.instanceof(Function);
+    });
+    it('should contain an updateConfig method', () => {
+        expect(myBot.updateConfig).to.be.instanceof(Function);
+    });
+    it('should have a start method', () => {
+        expect(myBot.start).to.be.instanceof(Function);
+    });
+    it('should have a stop method', () => {
+        expect(myBot.stop).to.be.instanceof(Function);
     });
 });
