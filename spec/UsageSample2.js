@@ -59,7 +59,7 @@ function MyPlugin(name, bot, InjectedServices){
 //because this plugin has an execute, it can't be injected elsewhere
 MyPlugin.prototype.execute = function (messageData, paramArr, paramObj){
     //run this on !botName plugin
-    this.bot.irc.say(messageData.from, "Use a sub command, or maybe not");
+    this.bot.ircSay(messageData.from, "Use a sub command, or maybe not");
 };
 
 //use a plugin and inject MyService
