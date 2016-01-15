@@ -10,13 +10,13 @@ module.exports = class IRCBot {
         this._plugins = {};
     };
     
-    use (pluginName, pluginConstructor, injectedServices) {
+    use (pluginName, PluginConstructor, injectedServices) {
         //check for valid parameters
         if( typeof pluginName != 'string' ){
             throw new Error('IRCBot.use: pluginName was not a string, received '+(typeof pluginName));
         }
-        if( typeof pluginConstructor != 'function' ){
-            throw new Error('IRCBot.use: pluginConstructor was not a constructor function, received '+(typeof pluginConstructor));
+        if( typeof PluginConstructor != 'function' ){
+            throw new Error('IRCBot.use: PluginConstructor was not a constructor function, received '+(typeof PluginConstructor));
         }
         //check to see if the plugin is already registered
         if( this._plugins[pluginName] ){
@@ -35,9 +35,9 @@ module.exports = class IRCBot {
         }));
         
         //add a new instance of this plugin under the correct name
-        this._plugins[pluginName] = new (pluginConstructor.bind.apply(pluginConstructor, [pluginConstructor].concat(pluginArguments)));
+        this._plugins[pluginName] = new (PluginConstructor.bind.apply(PluginConstructor, [PluginConstructor].concat(pluginArguments)));
         //if the environment supported node 5.x.x, we could use the spread operator :(
-        /*this._plugins[pluginName] = new pluginConstructor(this, ...injectedServices.map((val) => {
+        /*this._plugins[pluginName] = new PluginConstructor(this, ...injectedServices.map((val) => {
             return this._plugins[val];
         }))*/
     };

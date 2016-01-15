@@ -19,10 +19,10 @@ describe('IRCBot.use', () => {
         
         it('should throw an error if the second argument is not a constructor', () => {
             "use strict";
-            class test {
+            class Test {
                 constructor(){};
             }; //typeof test == function
-            function alsoTest(){};
+            function AlsoTest(){};
             
             expect(() => {
                 myBot.use('1',undefined);
@@ -33,11 +33,11 @@ describe('IRCBot.use', () => {
             }).to.throw(Error);
             
             expect(() => {
-                myBot.use('3', test);
+                myBot.use('3', Test);
             }).to.not.throw(Error);
             
             expect(() => {
-                myBot.use('4', alsoTest);
+                myBot.use('4', AlsoTest);
             }).to.not.throw(Error);
         });
         
@@ -62,26 +62,26 @@ describe('IRCBot.use', () => {
             }).to.not.throw(Error);
         });
         it('should send the bot as the first parameter to the new plugin constructor without the _plugins property exposed', () => {
-            var somePlugin = function (bot){
+            var SomePlugin = function (bot){
                 expect(bot === myBot).to.be.true;
             };
-            myBot.use('test', somePlugin);
+            myBot.use('test', SomePlugin);
         });
         it('should send injected plugins to the constructor of the new plugin', () => {
             "use strict";
-            class firstPlugin {
+            class FirstPlugin {
                 constructor (){};
             };
             
-            class secondPlugin {
+            class SecondPlugin {
                 constructor (bot, dep){
-                    expect(dep instanceof firstPlugin).to.be.true;
+                    expect(dep instanceof FirstPlugin).to.be.true;
                 };
             };
             
-            myBot.use('firstPlugin', firstPlugin);
+            myBot.use('firstPlugin', FirstPlugin);
             //run the expectation constructor
-            myBot.use('secondPlugin', secondPlugin, ['firstPlugin']);
+            myBot.use('secondPlugin', FirstPlugin, ['firstPlugin']);
         });
     });
 });
