@@ -14,24 +14,21 @@ describe('IRCBot constructor', () => {
         
         expect(myBot).to.exist;
     });
-    it('should clone the config to avoid reference issues', () => {
+    it('should extend the internal config object with new values', () => {
         var testConfig = {
             name: 'test'
         };
         
         var myBot = new IRCBot(testConfig);
         
-        expect(testConfig).to.not.equal(myBot.config);
-        expect(testConfig).to.deep.equal(myBot.config);
+        expect(myBot.config.name).to.equal(testConfig.name);
     });
 });
 
 describe('Class Methods', () => {
     var myBot;
     beforeEach(() => {
-        myBot = new IRCBot({
-            name: 'test'
-        });
+        myBot = new IRCBot();
     });
     it('should contain a use method', () => {
         expect(myBot.use).to.be.instanceof(Function);

@@ -1,14 +1,21 @@
 "use strict";
-var extend = require('extend');
+var extend = require('extend'),
+    IrcClient = require('irc').Client;
 
 module.exports = class IRCBot {
-    constructor(config){
-        config = config || {};
+    constructor (config){
+        config = config || {
+            irc: {
+                client: {
+                    autoConnect: false
+                }
+            }
+        };
         //eliminate reference issues
         this.config = extend(true, {}, config);
         //init plugins container
         this._plugins = {};
-    };
+    }
     
     use (pluginName, PluginConstructor, injectedServices) {
         //check for valid parameters
@@ -40,7 +47,7 @@ module.exports = class IRCBot {
         /*this._plugins[pluginName] = new PluginConstructor(this, ...injectedServices.map((val) => {
             return this._plugins[val];
         }))*/
-    };
+    }
     
     /*
     * Wrapper around the extend module for updating
@@ -52,18 +59,38 @@ module.exports = class IRCBot {
     updateConfig (newConfig) {
         //throw an error if we got something like undefined or a primitive
         if( typeof newConfig !== 'object' ){
-            throw new Error('IRCBot.updateConfig - newConfig was not an object.');
+            throw new Error('IRCBot.updateConfig: newConfig was not an object.');
         }
         
         //update the internal config with the new properties
         this.config = extend(true, this.config, newConfig);
-    };
+    }
     
     start () {
-        
-    };
+        this._createClient();
+        this._connectClient();
+    }
+    
+    _createClient () {
+        if( !this.config.ircHost || this.config.ircHost === '' ){
+            throw new Error('IRCBot._createClient: ircHost is not defined. ');
+        }
+        if( !this.config.ircName || this.config.ircName === '' ){
+            throw new Error('IRCBot._createClient: ircName is not defined. ');
+        }
+        this.irc = this._getNewIrcClient(this.config.ircHost, this.config.ircName, this.config.irc.client);
+    }
+    //istanbul ES6 class method ignore hack: https://github.com/gotwarlost/istanbul/issues/445
+    _getNewIrcClient /* istanbul ignore next */ (host, name, params){
+        //wrapper around client constructor to allow better coverage
+        return new IrcClient(host, name, params);
+    }
+    
+    _connectClient () {
+        this.irc.connect();
+    }
     
     stop () {
         
-    };
+    }
 };
