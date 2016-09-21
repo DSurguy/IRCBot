@@ -1,7 +1,7 @@
 var IRCBot = require('../src/ircbot.js');
 
 var myBot = new IRCBot('us.quakenet.org', 'IRCBot', {
-    channels: ['#wootTest'],
+    channels: ['#surgeTest'],
     autoJoin: true
 });
 
@@ -11,5 +11,8 @@ function TestPlugin(){
 
 myBot.use('TestPlugin', TestPlugin);
 
-console.log(myBot._plugins);
 myBot.start();
+
+myBot.join().then(function (){
+    console.log('joined');
+}).catch(console.error);
