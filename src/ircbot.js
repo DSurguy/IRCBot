@@ -72,8 +72,16 @@ module.exports = class IRCBot {
     }
     
     start () {
-        this._createClient();
-        this._connectToHost();
+        return new Promise((resolve, reject) => {
+            try{
+                this._createClient(); //synchronous
+                this._connectToHost()
+                .then(resolve)
+                .catch(reject);
+            } catch (e){
+                reject(e);
+            }
+        });
     }
     
     _createClient () {
@@ -90,16 +98,15 @@ module.exports = class IRCBot {
     _connectToHost () {
         return new Promise((resolve, reject) => {
             try{
-                this.irc.connect(resolve);
+                this.irc.connect(1, resolve);
             } catch (e){
                 reject(e);
             }
         });
     }
 
-    /* Async */
     join () {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var allJoinPromises = [];
             for( var i=0; i<this.config.channels.length; i++ ){
                 var index = i;
