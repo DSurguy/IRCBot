@@ -22,24 +22,16 @@ describe('IRCBot.start', () => {
         //no need to unstub the methods, the bot is recreated before each test
     });
     describe('IRCBot._createClient', () => {
-        it('should throw an error if config.ircHost is undefined', () => {
-            //define the name to avoid its error handling
-            myBot.config.ircName = 'test';
-            expect( () => {
-                myBot._createClient();
-            }).to.throw(Error);
-        });
-        it('should throw an error if config.ircName is undefined', () => {
-            //define the host to avoid its error handling
-            myBot.config.ircHost = 'test';
+        it('should throw any errors from client construction', () => {
+            sinon.stub(myBot, '_getNewIrcClient').throws();
             expect( () => {
                 myBot._createClient();
             }).to.throw(Error);
         });
         it('should create and store an IRC client internally', () => {
             //set required config
-            myBot.config.ircHost = 'test';
-            myBot.config.ircName = 'test';
+            myBot.ircHost = 'test';
+            myBot.ircName = 'test';
             //stub the constuctor
             sinon.stub(myBot, '_getNewIrcClient', function (){
                 return new IrcClient('','');
@@ -49,8 +41,8 @@ describe('IRCBot.start', () => {
         });
         it('should pass irc client parameters to the client constructor', () => {
             //set required config
-            myBot.config.ircHost = 'test';
-            myBot.config.ircName = 'test';
+            myBot.ircHost = 'test';
+            myBot.ircName = 'test';
             //set an additional parameter
             myBot.config.ircClientParams = {
                 someParam: 'test'
@@ -62,16 +54,38 @@ describe('IRCBot.start', () => {
             myBot._createClient();
             expect(myBot._getNewIrcClient)
                 .to.have.been
-                .calledWith(myBot.config.ircHost, myBot.config.ircName, myBot.config.ircClientParams);
+                .calledWith(myBot.ircHost, myBot.ircName, myBot.config.ircClientParams);
         });
     });
     describe('IRCBot._connectToHost', () => {
-        it('should use the stored client to connect to the preconfigured server', () => {
-            myBot.irc = {
-                connect: sinon.spy()
-            };
-            myBot._connectToHost();
-            expect(myBot.irc.connect).to.have.been.called;
+        beforeEach(()=>{
+            myBot.irc = {connect: function(){}};
         })
+        it('should return a promise', () => {
+            sinon.stub(myBot.irc, 'connect');
+            var returnValue = myBot._connectToHost();
+            expect(typeof returnValue.then == 'function').to.be.true;
+        });
+
+        it('should resolve after connecting', (done) => {
+            sinon.stub(myBot.irc, 'connect', function (cb){
+                cb();
+            });
+
+            myBot._connectToHost().then(()=>{
+                expect(myBot.irc.connect.called);
+                done();
+            });
+        });
+
+        it('should reject the promise if there was an error', (done) => {
+            myBot.irc = {connect: function(){}};
+            sinon.stub(myBot.irc, 'connect').throws();
+
+            myBot._connectToHost().catch((err)=>{
+                expect(err).to.be.defined;
+                done();
+            });
+        });
     });
 });

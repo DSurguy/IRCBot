@@ -10,12 +10,13 @@ module.exports = class IRCBot {
         if( name === undefined || name === '' ){
             throw new Error('IRCBot: Missing required parameter(1): \'name\'. Received: ('+params.join(',')+')');
         }
-        this.host = host;
-        this.name = name;
+        this.ircHost = host;
+        this.ircName = name;
         //eliminate reference issues
         this.config = extend(true, {
             channels: [],
-            autoJoin: false
+            autoJoin: false,
+            autoConnect: false
         }, config||{});
         //init plugins container
         this._plugins = {};
@@ -76,13 +77,9 @@ module.exports = class IRCBot {
     }
     
     _createClient () {
-        if( !this.config.ircHost || this.config.ircHost === '' ){
-            throw new Error('IRCBot._createClient: ircHost is not defined. ');
-        }
-        if( !this.config.ircName || this.config.ircName === '' ){
-            throw new Error('IRCBot._createClient: ircName is not defined. ');
-        }
-        this.irc = this._getNewIrcClient(this.config.ircHost, this.config.ircName, this.config.ircClientParams||{});
+        this.irc = this._getNewIrcClient(this.ircHost, this.ircName, this.config.ircClientParams||{
+            autoConnect: false
+        });
     }
     //istanbul ES6 class method ignore hack: https://github.com/gotwarlost/istanbul/issues/445
     _getNewIrcClient /* istanbul ignore next */ (host, name, params){
@@ -91,10 +88,35 @@ module.exports = class IRCBot {
     }
     
     _connectToHost () {
-        this.irc.connect();
+        return new Promise((resolve, reject) => {
+            try{
+                this.irc.connect(resolve);
+            } catch (e){
+                reject(e);
+            }
+        });
     }
-    
+
+    /* Async */
+    join () {
+        return new Promise((resolve, reject)=>{
+            var allJoinPromises = [];
+            for( var i=0; i<this.config.channels.length; i++ ){
+                var index = i;
+                allJoinPromises.push(new Promise((res,rej) => {
+                    try{
+                        this.irc.join(this.config.channels[index], res);
+                    } catch (e){
+                        rej(e);
+                    }
+                }))
+            }
+            Promise.all(allJoinPromises).then(resolve).catch(reject);
+        });
+    }
+
     stop () {
         
     }
+
 };
