@@ -15,10 +15,10 @@ describe('IRCBot.start', () => {
     it('should call supporting methods', () => {
         //stub out the helper methods
         sinon.stub(myBot, '_createClient');
-        sinon.stub(myBot, '_connectClient');
+        sinon.stub(myBot, '_connectToHost');
         myBot.start();
         expect(myBot._createClient).to.have.been.called;
-        expect(myBot._connectClient).to.have.been.called;
+        expect(myBot._connectToHost).to.have.been.called;
         //no need to unstub the methods, the bot is recreated before each test
     });
     describe('IRCBot._createClient', () => {
@@ -65,12 +65,12 @@ describe('IRCBot.start', () => {
                 .calledWith(myBot.config.ircHost, myBot.config.ircName, myBot.config.ircClientParams);
         });
     });
-    describe('IRCBot._connectClient', () => {
+    describe('IRCBot._connectToHost', () => {
         it('should use the stored client to connect to the preconfigured server', () => {
             myBot.irc = {
                 connect: sinon.spy()
             };
-            myBot._connectClient();
+            myBot._connectToHost();
             expect(myBot.irc.connect).to.have.been.called;
         })
     });

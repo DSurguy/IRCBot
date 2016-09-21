@@ -72,7 +72,7 @@ module.exports = class IRCBot {
     
     start () {
         this._createClient();
-        this._connectClient();
+        this._connectToHost();
     }
     
     _createClient () {
@@ -90,7 +90,7 @@ module.exports = class IRCBot {
         return new IrcClient(host, name, params);
     }
     
-    _connectClient () {
+    _connectToHost () {
         this.irc.connect();
     }
     
