@@ -4,7 +4,7 @@ var IRCBot = require('../src/ircbot.js');
 describe('IRCBot.use', () => {
     var myBot;
     beforeEach(() =>{
-        myBot = new IRCBot({});
+        myBot = new IRCBot('host','name');
     });
     describe('Exceptions', () => {
         it('should throw an error if the first argument is not a string', () => {

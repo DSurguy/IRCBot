@@ -10,7 +10,7 @@ chai.use(sinonChai);
 describe('IRCBot.start', () => {
     var myBot;
     beforeEach(() => {
-        myBot = new IRCBot();
+        myBot = new IRCBot('host','name');
     });
     it('should call supporting methods', () => {
         //stub out the helper methods
@@ -52,7 +52,7 @@ describe('IRCBot.start', () => {
             myBot.config.ircHost = 'test';
             myBot.config.ircName = 'test';
             //set an additional parameter
-            myBot.config.irc.client = {
+            myBot.config.ircClientParams = {
                 someParam: 'test'
             };
             sinon.stub(myBot, '_getNewIrcClient', function (){
@@ -62,7 +62,7 @@ describe('IRCBot.start', () => {
             myBot._createClient();
             expect(myBot._getNewIrcClient)
                 .to.have.been
-                .calledWith(myBot.config.ircHost, myBot.config.ircName, myBot.config.irc.client);
+                .calledWith(myBot.config.ircHost, myBot.config.ircName, myBot.config.ircClientParams);
         });
     });
     describe('IRCBot._connectClient', () => {

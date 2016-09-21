@@ -3,16 +3,20 @@ var extend = require('extend'),
     IrcClient = require('irc').Client;
 
 module.exports = class IRCBot {
-    constructor (config){
-        config = config || {
-            irc: {
-                client: {
-                    autoConnect: false
-                }
-            }
-        };
+    constructor (host, name, config){
+        if( host === undefined || host === '' ){
+            throw new Error('IRCBot: Missing required parameter(0): \'host\'. Received: ('+params.join(',')+')');
+        }
+        if( name === undefined || name === '' ){
+            throw new Error('IRCBot: Missing required parameter(1): \'name\'. Received: ('+params.join(',')+')');
+        }
+        this.host = host;
+        this.name = name;
         //eliminate reference issues
-        this.config = extend(true, {}, config);
+        this.config = extend(true, {
+            channels: [],
+            autoJoin: false
+        }, config||{});
         //init plugins container
         this._plugins = {};
     }
@@ -78,7 +82,7 @@ module.exports = class IRCBot {
         if( !this.config.ircName || this.config.ircName === '' ){
             throw new Error('IRCBot._createClient: ircName is not defined. ');
         }
-        this.irc = this._getNewIrcClient(this.config.ircHost, this.config.ircName, this.config.irc.client);
+        this.irc = this._getNewIrcClient(this.config.ircHost, this.config.ircName, this.config.ircClientParams||{});
     }
     //istanbul ES6 class method ignore hack: https://github.com/gotwarlost/istanbul/issues/445
     _getNewIrcClient /* istanbul ignore next */ (host, name, params){

@@ -4,7 +4,7 @@ var IRCBot = require('../src/ircbot.js');
 describe('IRCBot.updateConfig', function (){
     var myBot;
     beforeEach( () => {
-        myBot = new IRCBot();
+        myBot = new IRCBot('host','name');
         myBot.config = {
             test: 'test'
         };

@@ -2,13 +2,25 @@ var expect = require('chai').expect;
 var IRCBot = require('../src/ircbot.js');
 
 describe('IRCBot constructor', () => {
+    it('should throw an error if constructed with no host', () => {
+        expect(()=>{
+            var myBot = new IRCBot();
+        }).to.throw(Error);
+    });
+
+    it('should throw an error if contructed with no bot name', () => {
+        expect(()=>{
+            var myBot = new IRCBot('someHost');
+        }).to.throw(Error);
+    });
+
     it('should allow construction with no config', () => {
-        var myBot = new IRCBot();
+        var myBot = new IRCBot('host','name');
         
         expect(myBot).to.exist;
     });
     it('should allow construction with config', () => {
-        var myBot = new IRCBot({
+        var myBot = new IRCBot('host','name', {
             name: 'test'
         });
         
@@ -19,7 +31,7 @@ describe('IRCBot constructor', () => {
             name: 'test'
         };
         
-        var myBot = new IRCBot(testConfig);
+        var myBot = new IRCBot('host','name', testConfig);
         
         expect(myBot.config.name).to.equal(testConfig.name);
     });
@@ -28,7 +40,7 @@ describe('IRCBot constructor', () => {
 describe('Class Methods', () => {
     var myBot;
     beforeEach(() => {
-        myBot = new IRCBot();
+        myBot = new IRCBot('host','name');
     });
     it('should contain a use method', () => {
         expect(myBot.use).to.be.instanceof(Function);

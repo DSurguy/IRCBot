@@ -1,8 +1,8 @@
 var IRCBot = require('../src/ircbot.js');
 
-var myBot = new IRCBot({
-    ircHost: 'us.quakenet.org',
-    ircName: 'IRCBot'
+var myBot = new IRCBot('us.quakenet.org', 'IRCBot', {
+    channels: ['#wootTest'],
+    autoJoin: true
 });
 
 function TestPlugin(){
