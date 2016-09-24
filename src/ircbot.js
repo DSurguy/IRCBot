@@ -72,16 +72,12 @@ module.exports = class IRCBot {
     }
     
     start () {
-        return new Promise((resolve, reject) => {
-            try{
-                this._createClient(); //synchronous
-                this._connectToHost()
-                .then(resolve)
-                .catch(reject);
-            } catch (e){
-                reject(e);
-            }
-        });
+        try{
+            this._createClient(); //synchronous
+            return this._connectToHost();
+        } catch (e){
+            return Promise.reject(e);
+        }
     }
     
     _createClient () {
@@ -98,7 +94,7 @@ module.exports = class IRCBot {
     _connectToHost () {
         return new Promise((resolve, reject) => {
             try{
-                this.irc.connect(1, resolve);
+                this.irc.connect(resolve);
             } catch (e){
                 reject(e);
             }
