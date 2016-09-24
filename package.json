@@ -27,14 +27,14 @@
   },
   "homepage": "https://github.com/DSurguy/IRCBot#readme",
   "devDependencies": {
-    "chai": "^3.4.1",
-    "istanbul": "^0.4.1",
-    "mocha": "^2.3.4",
-    "sinon": "^1.17.2",
-    "sinon-chai": "^2.8.0"
+    "chai": "",
+    "istanbul": "",
+    "mocha": "",
+    "sinon": "",
+    "sinon-chai": ""
   },
   "dependencies": {
-    "extend": "^3.0.0",
-    "irc": "^0.4.0"
+    "extend": "",
+    "irc": ""
   }
 }

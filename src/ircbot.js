@@ -5,10 +5,10 @@ var extend = require('extend'),
 module.exports = class IRCBot {
     constructor (host, name, config){
         if( host === undefined || host === '' ){
-            throw new Error('IRCBot: Missing required parameter(0): \'host\'. Received: ('+params.join(',')+')');
+            throw new Error('IRCBot: Missing required parameter(0): \'host\'. Received: ('+arguments.join(',')+')');
         }
         if( name === undefined || name === '' ){
-            throw new Error('IRCBot: Missing required parameter(1): \'name\'. Received: ('+params.join(',')+')');
+            throw new Error('IRCBot: Missing required parameter(1): \'name\'. Received: ('+arguments.join(',')+')');
         }
         this.ircHost = host;
         this.ircName = name;
