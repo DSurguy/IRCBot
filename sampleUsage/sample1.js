@@ -1,23 +1,35 @@
 var IRCBot = require('ircbot');
 
-class MyPlugin{
-    api;
-    register;
-    deregister;
-
-    MyPlugin(register, deregister, api){
+/**
+ * A sample plugin that does the following
+ *  1. Register a passive handler that looks for the word 'slap'
+ *  2. When the handler is triggered, increment a counter and emote a silly tuna slap message
+ *  3. When the trigger count exceeds 5, "die", emoting a new message and removing the handler permanently
+ */
+class FishSlap{
+    constructor(register, deregister, plugins){
         this.api = api;
         this.register = register;
         this.deregister = deregister;
+        this.regs = [];
+        this.count = 0;
 
-        register('passive', {
+        this.regs.push(this.pApi.register('passive', {
             regex: /slap/g,
             handler: handler
-        });
+        }));
     }
 
     handler(msg){
-        this.api.irc.say(msg.target, '/me gets slapped by a large tuna.');
+        if( this.count > 4 ){
+            this.api.irc.say(msg.target, '/me gets slapped by a large tuna.');
+            this.api.irc.say(msg.target, '/me succumbs to death by tuna.')
+            this.deregister(this.regs[0]);
+        }
+        else{
+            this.api.irc.say(msg.target, '/me gets slapped by a large tuna.');
+            this.count++;
+        }
     }
 };
 
@@ -27,13 +39,7 @@ myBot.setupClient('us.quakenet.org', 'surgeBot', {
     channels: ['#surgeBotTest']
 });
 
-//shorthand for plugin
-myBot.use('my-plugin', MyPlugin);
-
-//long form
-myBot.register('plugin', {
-    name: 'my-plugin',
-    constructor: MyPlugin
-});
+//Attach plugin, which attaches a passive handler
+myBot.use('fish-slap', FishSlap);
 
 myBot.api.irc.connect();
