@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha tests",
     "test.watch": "mocha tests --reporter min --watch",
-    "coverage": "mocha tests --reporter mocha-istanbul"
+    "docs": "node ./node_modules/jsdoc/jsdoc.js ./src/*.js -d docs"
   },
   "repository": {
     "type": "git",
@@ -20,10 +20,9 @@
   "homepage": "https://github.com/DSurguy/IRCBot#readme",
   "devDependencies": {
     "chai": "",
-    "istanbul": "",
     "mocha": "",
     "sinon": "",
-    "sinon-chai": ""
+    "jsdoc": ""
   },
   "dependencies": {
     "extend": "",

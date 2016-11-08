@@ -7,14 +7,15 @@ var IRCBot = require('ircbot');
  *  3. When the trigger count exceeds 5, "die", emoting a new message and removing the handler permanently
  */
 class FishSlap{
-    constructor(register, deregister, plugins){
+    constructor(register, deregister, api){
         this.api = api;
         this.register = register;
         this.deregister = deregister;
         this.regs = [];
         this.count = 0;
 
-        this.regs.push(this.pApi.register('passive', {
+        //store the handler ID to unregister it later
+        this.regs.push(register('passive', {
             regex: /slap/g,
             handler: handler
         }));
