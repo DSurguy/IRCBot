@@ -1,4 +1,4 @@
-var IRCBot = require('ircbot');
+const {IRCBot, PLUGIN_TYPE, PassiveConfig} = require('ircbot');
 
 /**
  * A sample plugin that does the following
@@ -11,14 +11,19 @@ class FishSlap{
         this.api = api;
         this.register = register;
         this.deregister = deregister;
+
         this.regs = [];
         this.count = 0;
 
+        this.init();
+    }
+
+    init(){
         //store the handler ID to unregister it later
-        this.regs.push(register('passive', {
+        this.regs.push(this.register(PLUGIN_TYPE.PASSIVE, new PassiveConfig({
             regex: /slap/g,
-            handler: handler
-        }));
+            handler: this.handler
+        })));
     }
 
     handler(msg){

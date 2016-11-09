@@ -1,4 +1,4 @@
-var IRCBot = require('../src/ircbot.js');
+const {IRCBot, PLUGIN_TYPE} = require('../src/ircbot.js');
 var expect = require('chai').expect;
 var irc = require('irc');
 var sinon = require('sinon');
@@ -67,8 +67,13 @@ describe('IRCBot', function (){
         });
 
         describe('scoped register', function (){
+            beforeEach(function (){
+                sinon.stub(testBot, 'register');
+            });
+            afterEach(function (){
+                testBot.register.restore();
+            });
             it('should call register with the plugin name hardcoded as scope', function (){
-                sinon.spy(testBot, 'register');
                 function MyPlugin(register, deregister){
                     var configObj = {};
                     register('type', configObj);
@@ -78,7 +83,6 @@ describe('IRCBot', function (){
             });
 
             it('should not allow manual overwrite of scope name', function (){
-                sinon.spy(testBot, 'register');
                 function MyPlugin(register, deregister){
                     var configObj = {};
                     register('type', configObj, 'overwriteScope');
@@ -89,8 +93,13 @@ describe('IRCBot', function (){
         });
 
         describe('scoped deregister', function (){
+            beforeEach(function (){
+                sinon.stub(testBot, 'deregister');
+            });
+            afterEach(function (){
+                testBot.deregister.restore();
+            });
             it('should call deregister with the plugin name hardcoded as scope', function (){
-                sinon.spy(testBot, 'deregister');
                 function MyPlugin(register, deregister){
                     deregister(1);
                     expect(testBot.deregister.calledWith(1, 'my-plugin')).to.equal(true);
@@ -99,7 +108,6 @@ describe('IRCBot', function (){
             });
 
             it('should not allow manual overwrite of scope name', function (){
-                sinon.spy(testBot, 'deregister');
                 function MyPlugin(register, deregister){
                     deregister(1, 'overwriteScope');
                     expect(testBot.deregister.calledWith(1, 'my-plugin')).to.equal(true);
@@ -107,5 +115,35 @@ describe('IRCBot', function (){
                 testBot.use('my-plugin', MyPlugin);
             });
         });
+    });
+
+    describe('register', function (){
+        beforeEach(function (){
+            sinon.stub(testBot, 'registerPassive');
+            sinon.stub(testBot, 'registerMiddleware');
+            sinon.stub(testBot, 'registerCommand');
+        });
+        afterEach(function (){
+            testBot.registerPassive.restore();
+            testBot.registerMiddleware.restore();
+            testBot.registerCommand.restore();
+        });
+        it('should route to the correct registration function and pass along parameters', function (){
+            var myConfig = {};
+            var myScope = 'testScope';
+            testBot.register(PLUGIN_TYPE.PASSIVE, myConfig, myScope);
+            expect(testBot.registerPassive.calledWith(myConfig, myScope));
+            testBot.register(PLUGIN_TYPE.MIDDLEWARE, myConfig, myScope);
+            expect(testBot.registerMiddleware.calledWith(myConfig, myScope));
+            testBot.register(PLUGIN_TYPE.COMMAND, myConfig, myScope);
+            expect(testBot.registerCommand.calledWith(myConfig, myScope));
+        });
+        it('should throw an error if passed an invalid plugin type', function (){
+            expect(testBot.register.bind(testBot, 12345)).to.throw(Error);
+        });
+    });
+
+    describe('registerPassive', function (){
+        
     });
 });

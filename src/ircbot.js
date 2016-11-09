@@ -1,4 +1,11 @@
-var irc = require('irc');
+var irc = require('irc'),
+    extend = require('extend');
+
+const PLUGIN_TYPE = {
+    PASSIVE: 0,
+    MIDDLEWARE: 1,
+    COMMAND: 2
+};
 
 class IRCBot{
     /**
@@ -22,10 +29,13 @@ class IRCBot{
      * @throws {Error} An error will be thrown if the irc Client has already been set up. Use teardownClient to disable and remove the existing client before setting up a new one
      */
     setupClient(server, nick, config){
+        //check for existing client and complain
         if( this._irc instanceof irc.Client ){
             throw new Error('IRC client is already configured. The client must be destroyed before a new one can be created.');
         }
+        //create a new client
         this._irc = new irc.Client(server, nick, config);
+        //update api reference
         this.api.irc = this._irc;
     }
 
@@ -46,21 +56,59 @@ class IRCBot{
     }
 
     /** 
-     * Attach a handler (passive/middleware/command) to the bot instance
-     * This register function is similar to the one passed to plugins, but 
-     * it is not scoped.
+     * Convenience method for registering all types of message handlers, using the PLUGIN_TYPE enum to identify the handler type.
+     * @param {Integer} pluginType Handler type, uses PLUGIN_TYPE enum to identify
+     * @param {Object} config Configuration object to pass to registration function for specific handler type
+     * @param {String} scope Plugin scope, if applicable
+     * @throws {Error} Will throw an error if the plugin type provided is not valid. Currently, PASSIVE, MIDDLEWARE and COMMAND are supported.
      */
-    register(type, config, scope){}
+    register(pluginType, config, scope){
+        switch(pluginType){
+            case PLUGIN_TYPE.PASSIVE: this.registerPassive(config, scope); break;
+            case PLUGIN_TYPE.MIDDLEWARE: this.registerMiddleware(config, scope); break;
+            case PLUGIN_TYPE.COMMAND: this.registerCommand(config, scope); break;
+            default: throw new Error(pluginType.toString()+' is not a valid plugin type. Use PLUGIN_TYPE enum for valid values.');
+        }
+    };
+    registerPassive(config, scope){};
+    registerMiddleware(config, scope){};
+    registerCommand(config, scope){};
 
     /**
      * Remove a specific handler from the bot instance
      */
     deregister(pluginId, scope){}
-
-    _registerPlugin(){}
-    _registerPassive(){}
-    _registerMiddleware(){}
-    _registerCommand(){}
 }
 
-module.exports = IRCBot;
+class PassiveConfig{
+    /**
+     * @constructor
+     */
+    constructor(inConfig){
+        let baseConfig = {
+            //by default, execute on any string
+            regex: new RegExp(),
+            //by default, do nothing, this has to be overwritten for anything to happen!
+            handler: function (){}
+        };
+        for( let prop in this ){
+            if( baseConfig.hasOwnProperty(prop) && inConfig.hasOwnProperty(prop) ){
+                baseConfig[prop] = inConfig[prop];
+            }
+        }
+
+        extend(this, baseConfig);
+    }
+
+    get regex(){return this._regex;}
+    set regex(val){this._regex = val;}
+
+    get handler(){return this._handler;}
+    set handler(val){this._handler = val;}
+}
+
+module.exports = {
+    IRCBot: IRCBot,
+    PLUGIN_TYPE: PLUGIN_TYPE,
+    PassiveConfig: PassiveConfig
+};
