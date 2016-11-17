@@ -1,10 +1,30 @@
 var irc = require('irc'),
-    extend = require('extend');
+    extend = require('extend'),
+    _handlers = require('./handlers/bundle.js');
 
 const PLUGIN_TYPE = {
     PASSIVE: 0,
     MIDDLEWARE: 1,
     COMMAND: 2
+};
+
+function getPluginType(plugin){
+    let passive = [_handlers.MessageHandler],
+        middleware = [],
+        command = [];
+    
+    if( passive.filter((p)=>{return p==plugin.constructor}).length ){
+        return 0;
+    }
+
+    if( middleware.filter((p)=>{return p==plugin.constructor}).length ){
+        return 1;
+    }
+
+    if( command.filter((p)=>{return p==plugin.constructor}).length ){
+        return 2;
+    }
+    return -1;
 };
 
 class IRCBot{
@@ -19,6 +39,7 @@ class IRCBot{
             plugins: this._plugins,
             irc: this._irc
         };
+        this._registry = {};
     }
 
     /**
@@ -48,8 +69,9 @@ class IRCBot{
     use(pluginName, pluginConstructor){
         var scopeName = pluginName;
         var bot = this;
-        this._plugins[pluginName] = new pluginConstructor(function(type, config){
-            bot.register(type, config, scopeName);
+        //create a new instance of the plugin with a scoped register and deregister function as constructor parameters
+        this._plugins[pluginName] = new pluginConstructor(function(handler){
+            bot.register(handler, scopeName);
         }, function (pluginId){
             bot.deregister(pluginId, scopeName);
         }, bot.api);
@@ -57,22 +79,43 @@ class IRCBot{
 
     /** 
      * Convenience method for registering all types of message handlers, using the PLUGIN_TYPE enum to identify the handler type.
-     * @param {Integer} pluginType Handler type, uses PLUGIN_TYPE enum to identify
-     * @param {Object} config Configuration object to pass to registration function for specific handler type
-     * @param {String} scope Plugin scope, if applicable
+     * @param {Handler} handler Handler that will bind to events emitted by the bot
+     * @param {String} [scope] Plugin scope, if applicable
      * @throws {Error} Will throw an error if the plugin type provided is not valid. Currently, PASSIVE, MIDDLEWARE and COMMAND are supported.
      */
-    register(pluginType, config, scope){
-        switch(pluginType){
-            case PLUGIN_TYPE.PASSIVE: this.registerPassive(config, scope); break;
-            case PLUGIN_TYPE.MIDDLEWARE: this.registerMiddleware(config, scope); break;
-            case PLUGIN_TYPE.COMMAND: this.registerCommand(config, scope); break;
-            default: throw new Error(pluginType.toString()+' is not a valid plugin type. Use PLUGIN_TYPE enum for valid values.');
+    register(handler, scope){
+        switch(getPluginType(handler)){
+            case PLUGIN_TYPE.PASSIVE: this.registerPassive(handler, scope); break;
+            case PLUGIN_TYPE.MIDDLEWARE: this.registerMiddleware(handler, scope); break;
+            case PLUGIN_TYPE.COMMAND: this.registerCommand(handler, scope); break;
+            default: throw new Error(handler.constructor.name+' is not a valid plugin type. Use provided IRCBot Handler constructors to avoid this error.');
         }
     };
-    registerPassive(config, scope){};
-    registerMiddleware(config, scope){};
-    registerCommand(config, scope){};
+
+    /**
+     * Adds a passive handler to the IRC bot instance to handle irc events
+     * @param {Handler} handler Handler that will bind to events emitted by the bot
+     * @param {String} [scope] Plugin scope, if applicable
+     */
+    registerPassive(handler, scope){
+        var events = handler.boundEvents();
+        for( var i=0; i<events.length; i++ ){
+            this._irc.on(events[i], function (){
+                //convert the irc client event data into an object we can pass along
+                var args = Array.prototype.slice.call(arguments);
+                var ircData = {};
+                for( var arg in args ){
+                    ircData[arg] = args[arg];
+                }
+                //test if we should execute the handler or not, then do so
+                if( handler.test(ircData, this) ){
+                    handler.execute(ircData);
+                }
+            });
+        }
+    };
+    registerMiddleware(handler, scope){};
+    registerCommand(handler, scope){};
 
     /**
      * Remove a specific handler from the bot instance
@@ -80,35 +123,6 @@ class IRCBot{
     deregister(pluginId, scope){}
 }
 
-class PassiveConfig{
-    /**
-     * @constructor
-     */
-    constructor(inConfig){
-        let baseConfig = {
-            //by default, execute on any string
-            regex: new RegExp(),
-            //by default, do nothing, this has to be overwritten for anything to happen!
-            handler: function (){}
-        };
-        for( let prop in this ){
-            if( baseConfig.hasOwnProperty(prop) && inConfig.hasOwnProperty(prop) ){
-                baseConfig[prop] = inConfig[prop];
-            }
-        }
-
-        extend(this, baseConfig);
-    }
-
-    get regex(){return this._regex;}
-    set regex(val){this._regex = val;}
-
-    get handler(){return this._handler;}
-    set handler(val){this._handler = val;}
-}
-
-module.exports = {
-    IRCBot: IRCBot,
-    PLUGIN_TYPE: PLUGIN_TYPE,
-    PassiveConfig: PassiveConfig
-};
+//just add the IRCBot to the handlers object to get our export object
+_handlers.IRCBot = IRCBot;
+module.exports = _handlers;

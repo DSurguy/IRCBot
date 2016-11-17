@@ -1,4 +1,4 @@
-const {IRCBot, PLUGIN_TYPE} = require('../src/ircbot.js');
+const {IRCBot, MessageHandler} = require('../src/ircbot.js');
 var expect = require('chai').expect;
 var irc = require('irc');
 var sinon = require('sinon');
@@ -75,18 +75,18 @@ describe('IRCBot', function (){
             });
             it('should call register with the plugin name hardcoded as scope', function (){
                 function MyPlugin(register, deregister){
-                    var configObj = {};
-                    register('type', configObj);
-                    expect(testBot.register.calledWith('type', configObj, 'my-plugin')).to.equal(true);
+                    var myHandler = {};
+                    register(myHandler);
+                    expect(testBot.register.calledWith(myHandler, 'my-plugin')).to.equal(true);
                 };
                 testBot.use('my-plugin', MyPlugin);
             });
 
             it('should not allow manual overwrite of scope name', function (){
                 function MyPlugin(register, deregister){
-                    var configObj = {};
-                    register('type', configObj, 'overwriteScope');
-                    expect(testBot.register.calledWith('type', configObj, 'my-plugin')).to.equal(true);
+                    var myHandler = {};
+                    register(myHandler, 'overwriteScope');
+                    expect(testBot.register.calledWith(myHandler, 'my-plugin')).to.equal(true);
                 };
                 testBot.use('my-plugin', MyPlugin);
             });
@@ -129,21 +129,25 @@ describe('IRCBot', function (){
             testBot.registerCommand.restore();
         });
         it('should route to the correct registration function and pass along parameters', function (){
-            var myConfig = {};
+            var myHandler = new MessageHandler({});
             var myScope = 'testScope';
-            testBot.register(PLUGIN_TYPE.PASSIVE, myConfig, myScope);
-            expect(testBot.registerPassive.calledWith(myConfig, myScope));
-            testBot.register(PLUGIN_TYPE.MIDDLEWARE, myConfig, myScope);
-            expect(testBot.registerMiddleware.calledWith(myConfig, myScope));
-            testBot.register(PLUGIN_TYPE.COMMAND, myConfig, myScope);
-            expect(testBot.registerCommand.calledWith(myConfig, myScope));
+            testBot.register(myHandler, myScope);
+            expect(testBot.registerPassive.calledWith(myHandler, myScope));
+            // testBot.register(PLUGIN_TYPE.MIDDLEWARE, myConfig, myScope);
+            // expect(testBot.registerMiddleware.calledWith(myConfig, myScope));
+            // testBot.register(PLUGIN_TYPE.COMMAND, myConfig, myScope);
+            // expect(testBot.registerCommand.calledWith(myConfig, myScope));
         });
         it('should throw an error if passed an invalid plugin type', function (){
-            expect(testBot.register.bind(testBot, 12345)).to.throw(Error);
+            //create some generic object that doesn't match any of the plugin types
+            var myHandler = {};
+            expect(testBot.register.bind(testBot, myHandler)).to.throw(Error);
         });
     });
 
     describe('registerPassive', function (){
-        
+        it('should have tests defined', function (){
+            expect(false).to.equal(true);
+        })
     });
 });

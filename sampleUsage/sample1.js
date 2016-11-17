@@ -1,4 +1,4 @@
-const {IRCBot, PLUGIN_TYPE, PassiveConfig} = require('ircbot');
+const {IRCBot, MessageHandler} = require('ircbot');
 
 /**
  * A sample plugin that does the following
@@ -20,20 +20,23 @@ class FishSlap{
 
     init(){
         //store the handler ID to unregister it later
-        this.regs.push(this.register(PLUGIN_TYPE.PASSIVE, new PassiveConfig({
-            regex: /slap/g,
-            handler: this.handler
-        })));
+        var registerID = this.register(new MessageHandler({
+            match: /slap/g,
+            handler: this.handler,
+            includeDirectMessages: false
+        }));
+        this.regs.push(registerID);
     }
 
-    handler(msg){
+    handler(ircEventData){
         if( this.count > 4 ){
-            this.api.irc.say(msg.target, '/me gets slapped by a large tuna.');
-            this.api.irc.say(msg.target, '/me succumbs to death by tuna.')
+            this.api.irc.say(ircEventData.to, '/me gets slapped by a large tuna.');
+            this.api.irc.say(ircEventData.to, '/me succumbs to death by tuna.')
             this.deregister(this.regs[0]);
+            this.regs.pop();
         }
         else{
-            this.api.irc.say(msg.target, '/me gets slapped by a large tuna.');
+            this.api.irc.say(ircEventData.to, '/me gets slapped by a large tuna.');
             this.count++;
         }
     }
