@@ -40,22 +40,22 @@ describe('IRCBot', function (){
         it('should store a new instance of the plugin class in _plugins', function (){
             function MyPlugin(){};
             testBot.use('test', MyPlugin);
-            expect(testBot._plugins['test']).to.be.instanceOf(MyPlugin);
+            expect(testBot._plugins['test'].plugin).to.be.instanceOf(MyPlugin);
         });
 
-        it('should pass a register and deregister function to the plugin constructor', function (){
-            function MyPlugin(register, deregister){
+        it('should pass a register and deregister function to the plugin constructor, as well as reference to the bot', function (){
+            function MyPlugin(register, deregister, bot){
                 expect(typeof register).to.equal('function');
                 expect(typeof deregister).to.equal('function');
+                expect(bot).to.deep.equal(testBot);
             };
             testBot.use('my-plugin', MyPlugin);
         });
 
-        it('should give the plugin access to the bot', function (){
-            function MyPlugin(reg, dereg, bot){
-                expect(bot).to.deep.equal(testBot);
-            };
+        it('should setup the nextId for the plugin to be used for handler registration', function (){
+            function MyPlugin(){};
             testBot.use('test', MyPlugin);
+            expect(testBot._plugins['test'].nextId).to.equal(0);
         });
 
         describe('scoped register', function (){
@@ -125,6 +125,34 @@ describe('IRCBot', function (){
                 expect(testArgs[0]).to.equal(newHandler.boundEvents()[i]);
                 expect(typeof testArgs[1]).to.equal('function');
             }
+        })
+
+        it('should stored reference to handlers with scope', function (){
+            var scope = 'my-plugin';
+            testBot._plugins[scope] = {nextId: 0};
+            var myHandler = {boundEvents: ()=>[]};
+            testBot.register(myHandler, scope);
+            expect(testBot._plugins[scope][0]).to.equal(myHandler);
+        })
+
+        it('should stored reference to handlers without scope', function (){
+            var myHandler = {boundEvents: ()=>[]};
+            testBot.register(myHandler);
+            expect(testBot._plugins[0]).to.equal(myHandler);
+        })
+
+        it('should autoincrement plugin ids in scope', function (){
+            var scope = 'my-plugin';
+            testBot._plugins[scope] = {nextId: 0};
+            var myHandler = {boundEvents: ()=>[]};
+            testBot.register(myHandler, scope);
+            expect(testBot._plugins[scope].nextId).to.equal(1);
+        })
+
+        it('should autoincrement plugin ids without scope', function (){
+            var myHandler = {boundEvents: ()=>[]};
+            testBot.register(myHandler);
+            expect(testBot._plugins.nextId).to.equal(1);
         })
     });
 });

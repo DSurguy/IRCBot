@@ -1,6 +1,7 @@
 var irc = require('irc'),
     extend = require('extend'),
     _handlers = require('./handlers/bundle.js');
+    PluginContainer = require('./plugins/PluginContainer.js');
 
 const PLUGIN_TYPE = {
     PASSIVE: 0,
@@ -32,7 +33,9 @@ class IRCBot{
      * @constructor
      */
     constructor(){
-        this._plugins = {};
+        this._plugins = {
+            nextId: 0
+        };
         this._irc = undefined;
         this._api = {};
         this._registry = {};
@@ -73,11 +76,11 @@ class IRCBot{
         var scopeName = pluginName;
         var bot = this;
         //create a new instance of the plugin with a scoped register and deregister function as constructor parameters
-        this._plugins[pluginName] = new pluginConstructor(function(handler){
+        this._plugins[pluginName] = new PluginContainer(new pluginConstructor(function(handler){
             bot.register(handler, scopeName);
         }, function (pluginId){
             bot.deregister(pluginId, scopeName);
-        }, bot);
+        }, bot));
     }
 
     /**
@@ -100,6 +103,15 @@ class IRCBot{
                     handler.execute(ircData);
                 }
             });
+        }
+        //store the handler
+        if( scope ){
+            var nextId = this._plugins[scope].nextId++;
+            this._plugins[scope][nextId] = handler;
+        }
+        else{
+            var nextId = this._plugins.nextId++;
+            this._plugins[nextId] = handler;
         }
     };
 
