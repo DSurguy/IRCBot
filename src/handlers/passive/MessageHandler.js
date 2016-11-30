@@ -16,6 +16,21 @@ class MessageHandler extends Handler {
         //restrict to messages from specific nicks
         this.nicks = inConfig.nicks || undefined;
     }
+    /* Public Properties */
+    get match(){return this._match}
+    set match(val){this._match = val;}
+
+    get handler(){return this._handler}
+    set handler(val){this._handler = val;}
+
+    get includeDirectMessages(){return this._includeDirectMessages}
+    set includeDirectMessages(val){this._includeDirectMessages = val;}
+
+    get channels(){return this._channels}
+    set channels(val){this._channels = val;}
+
+    get nicks(){return this._nicks}
+    set nicks(val){this._nicks = val;}
 
     test(ircEventData, ircClient){
         //test against the list of filtered nicks if it exists

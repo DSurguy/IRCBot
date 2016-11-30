@@ -34,13 +34,18 @@ class IRCBot{
     constructor(){
         this._plugins = {};
         this._irc = undefined;
-        this.api = {
-            bot: this,
-            plugins: this._plugins,
-            irc: this._irc
-        };
+        this._api = {};
         this._registry = {};
     }
+    
+    get irc(){return this._irc;}
+    set irc(val){}
+
+    get api(){return this._api;}
+    set api(val){}
+
+    get plugins(){return this._plugins;}
+    set plugins(val){}
 
     /**
      * Configure, create and store an instance of the irc plugin's client on the bot api. Standard bot event listeners are attached at this point as well.
@@ -56,8 +61,6 @@ class IRCBot{
         }
         //create a new client
         this._irc = new irc.Client(server, nick, config);
-        //update api reference
-        this.api.irc = this._irc;
     }
 
     /**
@@ -74,30 +77,15 @@ class IRCBot{
             bot.register(handler, scopeName);
         }, function (pluginId){
             bot.deregister(pluginId, scopeName);
-        }, bot.api);
+        }, bot);
     }
 
-    /** 
-     * Convenience method for registering all types of message handlers, using the PLUGIN_TYPE enum to identify the handler type.
+    /**
+     * Adds a handler to the IRC bot instance to handle irc events
      * @param {Handler} handler Handler that will bind to events emitted by the bot
      * @param {String} [scope] Plugin scope, if applicable
-     * @throws {Error} Will throw an error if the plugin type provided is not valid. Currently, PASSIVE, MIDDLEWARE and COMMAND are supported.
      */
     register(handler, scope){
-        switch(getPluginType(handler)){
-            case PLUGIN_TYPE.PASSIVE: this.registerPassive(handler, scope); break;
-            case PLUGIN_TYPE.MIDDLEWARE: this.registerMiddleware(handler, scope); break;
-            case PLUGIN_TYPE.COMMAND: this.registerCommand(handler, scope); break;
-            default: throw new Error(handler.constructor.name+' is not a valid plugin type. Use provided IRCBot Handler constructors to avoid this error.');
-        }
-    };
-
-    /**
-     * Adds a passive handler to the IRC bot instance to handle irc events
-     * @param {Handler} handler Handler that will bind to events emitted by the bot
-     * @param {String} [scope] Plugin scope, if applicable
-     */
-    registerPassive(handler, scope){
         var events = handler.boundEvents();
         for( var i=0; i<events.length; i++ ){
             this._irc.on(events[i], function (){
@@ -114,13 +102,13 @@ class IRCBot{
             });
         }
     };
-    registerMiddleware(handler, scope){};
-    registerCommand(handler, scope){};
 
     /**
      * Remove a specific handler from the bot instance
      */
-    deregister(pluginId, scope){}
+    deregister(pluginId, scope){
+
+    }
 }
 
 //just add the IRCBot to the handlers object to get our export object

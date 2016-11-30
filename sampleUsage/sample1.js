@@ -7,10 +7,10 @@ const {IRCBot, MessageHandler} = require('ircbot');
  *  3. When the trigger count exceeds 5, "die", emoting a new message and removing the handler permanently
  */
 class FishSlap{
-    constructor(register, deregister, api){
-        this.api = api;
-        this.register = register;
-        this.deregister = deregister;
+    constructor(scopedRegister, scopedDeregister, bot){
+        this.bot = bot;
+        this.register = scopedRegister;
+        this.deregister = scopedDeregister;
 
         this.regs = [];
         this.count = 0;
@@ -20,24 +20,44 @@ class FishSlap{
 
     init(){
         //store the handler ID to unregister it later
-        var registerID = this.register(new MessageHandler({
+        this.regs.push(this.register(new MessageHandler({
             match: /slap/g,
-            handler: this.handler,
+            handler: this.slapHandler,
             includeDirectMessages: false
+        })));
+
+        this.register(new CommandHandler({
+            command: 'slapreset',
+            handler: this.reset
         }));
-        this.regs.push(registerID);
     }
 
-    handler(ircEventData){
+    slapHandler(ircEventData){
         if( this.count > 4 ){
-            this.api.irc.say(ircEventData.to, '/me gets slapped by a large tuna.');
-            this.api.irc.say(ircEventData.to, '/me succumbs to death by tuna.')
+            this.bot.irc.say(ircEventData.to, '/me gets slapped by a large tuna.');
+            this.bot.irc.say(ircEventData.to, '/me succumbs to death by tuna.')
             this.deregister(this.regs[0]);
             this.regs.pop();
         }
         else{
-            this.api.irc.say(ircEventData.to, '/me gets slapped by a large tuna.');
+            this.bot.irc.say(ircEventData.to, '/me gets slapped by a large tuna.');
             this.count++;
+        }
+    }
+
+    reset(){
+        if( !this.regs.length ){
+            this.regs.push(this.register(new MessageHandler({
+                match: /slap/g,
+                handler: this.slapHandler,
+                includeDirectMessages: false
+            })));
+        }
+        else{
+            this.count = 0;
+        }
+        for( var i=0; i<this.bot.irc.chans.length; i++ ){
+            //this.api.irc.say()
         }
     }
 };

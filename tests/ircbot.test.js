@@ -29,12 +29,6 @@ describe('IRCBot', function (){
             expect(testBot._irc).to.be.instanceOf(irc.Client);
         });
 
-        it('should update the api with access to the irc client instance', function (){
-            var myConfig = {};
-            testBot.setupClient('host', 'nick', myConfig);
-            expect(testBot.api.irc).to.equal(testBot._irc);
-        });
-
         it('should error if the client is already configured and is called again', function (){
             var myConfig = {};
             testBot.setupClient('host', 'nick', myConfig);
@@ -57,11 +51,9 @@ describe('IRCBot', function (){
             testBot.use('my-plugin', MyPlugin);
         });
 
-        it('should give the plugin access to the api, which is plugins, irc and bot', function (){
-            function MyPlugin(reg, dereg, api){
-                expect(api.plugins).to.deep.equal(testBot._plugins);
-                expect(api.irc).to.deep.equal(testBot._irc);
-                expect(api.bot).to.deep.equal(testBot);
+        it('should give the plugin access to the bot', function (){
+            function MyPlugin(reg, dereg, bot){
+                expect(bot).to.deep.equal(testBot);
             };
             testBot.use('test', MyPlugin);
         });
@@ -119,35 +111,20 @@ describe('IRCBot', function (){
 
     describe('register', function (){
         beforeEach(function (){
-            sinon.stub(testBot, 'registerPassive');
-            sinon.stub(testBot, 'registerMiddleware');
-            sinon.stub(testBot, 'registerCommand');
+            testBot._irc = {on: sinon.stub()};
         });
         afterEach(function (){
-            testBot.registerPassive.restore();
-            testBot.registerMiddleware.restore();
-            testBot.registerCommand.restore();
+            
         });
-        it('should route to the correct registration function and pass along parameters', function (){
-            var myHandler = new MessageHandler({});
-            var myScope = 'testScope';
-            testBot.register(myHandler, myScope);
-            expect(testBot.registerPassive.calledWith(myHandler, myScope));
-            // testBot.register(PLUGIN_TYPE.MIDDLEWARE, myConfig, myScope);
-            // expect(testBot.registerMiddleware.calledWith(myConfig, myScope));
-            // testBot.register(PLUGIN_TYPE.COMMAND, myConfig, myScope);
-            // expect(testBot.registerCommand.calledWith(myConfig, myScope));
-        });
-        it('should throw an error if passed an invalid plugin type', function (){
-            //create some generic object that doesn't match any of the plugin types
-            var myHandler = {};
-            expect(testBot.register.bind(testBot, myHandler)).to.throw(Error);
-        });
-    });
-
-    describe('registerPassive', function (){
-        it('should have tests defined', function (){
-            expect(false).to.equal(true);
+        it('Should bind an event for every eventname returned from the Handler "boundEvents" function', function (){
+            var newHandler = {boundEvents: ()=>{return['a','b','c']}};
+            testBot.register(newHandler);
+            var testArgs;
+            for( var i=0; i<3; i++ ){
+                testArgs = testBot._irc.on.getCall(i).args;
+                expect(testArgs[0]).to.equal(newHandler.boundEvents()[i]);
+                expect(typeof testArgs[1]).to.equal('function');
+            }
         })
     });
 });
