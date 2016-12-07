@@ -89,9 +89,10 @@ class IRCBot{
      * @param {String} [scope] Plugin scope, if applicable
      */
     register(handler, scope){
-        var events = handler.boundEvents();
+        var events = handler.boundEvents(),
+            eventFns = {};
         for( var i=0; i<events.length; i++ ){
-            this._irc.on(events[i], function (){
+            eventFns[events[i]] = function (){
                 //convert the irc client event data into an object we can pass along
                 var args = Array.prototype.slice.call(arguments);
                 var ircData = {};
@@ -102,24 +103,47 @@ class IRCBot{
                 if( handler.test(ircData, this) ){
                     handler.execute(ircData);
                 }
-            });
+            };
+            this._irc.on(events[i], eventFns[events[i]]);
         }
         //store the handler
         if( scope ){
             var nextId = this._plugins[scope].nextId++;
-            this._plugins[scope][nextId] = handler;
+            this._plugins[scope][nextId] = {
+                handler: handler,
+                events: eventFns
+            };
         }
         else{
             var nextId = this._plugins.nextId++;
-            this._plugins[nextId] = handler;
+            this._plugins[nextId] = {
+                handler: handler,
+                events: eventFns
+            };
         }
     };
 
     /**
      * Remove a specific handler from the bot instance
      */
-    deregister(pluginId, scope){
-
+    deregister(handlerId, scope){
+        if( typeof handlerId !== 'number' ){
+            throw new Error('handlerId should be an integer, got: '+handlerId)
+        }
+        if( scope && this._plugins[scope][handlerId] ){
+            for( var evName in this._plugins[scope][handlerId].events ){
+                this._irc.removeListener(evName, this._plugins[scope][handlerId].events[evName]);
+            }
+            this._plugins[scope][handlerId] = undefined;
+            delete this._plugins[scope][handlerId];
+        }
+        else if( this._plugins[handlerId] ){
+            for( var evName in this._plugins[handlerId].events ){
+                this._irc.removeListener(evName, this._plugins[handlerId].events[evName]);
+            }
+            this._plugins[handlerId] = undefined;
+            delete this._plugins[handlerId];
+        }
     }
 }
 

@@ -1,3 +1,4 @@
+"use strict";
 const {IRCBot, MessageHandler} = require('../src/ircbot.js');
 var expect = require('chai').expect;
 var irc = require('irc');
@@ -127,18 +128,20 @@ describe('IRCBot', function (){
             }
         })
 
-        it('should stored reference to handlers with scope', function (){
+        it('should store reference to handlers and bound events with scope', function (){
             var scope = 'my-plugin';
             testBot._plugins[scope] = {nextId: 0};
-            var myHandler = {boundEvents: ()=>[]};
+            var myHandler = {boundEvents: ()=>['test']};
             testBot.register(myHandler, scope);
-            expect(testBot._plugins[scope][0]).to.equal(myHandler);
+            expect(typeof testBot._plugins[scope][0].events['test']).to.equal('function');
+            expect(testBot._plugins[scope][0].handler).to.equal(myHandler);
         })
 
-        it('should stored reference to handlers without scope', function (){
-            var myHandler = {boundEvents: ()=>[]};
+        it('should store reference to handlers without scope', function (){
+            var myHandler = {boundEvents: ()=>['test']};
             testBot.register(myHandler);
-            expect(testBot._plugins[0]).to.equal(myHandler);
+            expect(typeof testBot._plugins[0].events['test']).to.equal('function');
+            expect(testBot._plugins[0].handler).to.equal(myHandler);
         })
 
         it('should autoincrement plugin ids in scope', function (){
@@ -154,5 +157,89 @@ describe('IRCBot', function (){
             testBot.register(myHandler);
             expect(testBot._plugins.nextId).to.equal(1);
         })
+    });
+    
+    describe('deregister', function (){
+        beforeEach(function (){
+            testBot._irc = {removeListener: sinon.stub()};
+        });
+        afterEach(function (){
+            
+        });
+        it('should remove all bound events for a deregistered handler (with scope)', function (){
+            var scope = 'scope';
+            var myHandler = function (){};
+            var myBind = function (){myHandler()};
+            testBot._plugins[scope] = {
+                nextId: 1,
+                0: {
+                    handler: myHandler,
+                    events: {
+                        'banana': myBind
+                    }
+                }
+            };
+            testBot.deregister(0,scope);
+            expect(testBot._irc.removeListener.calledWith('banana', myBind)).to.be.equal(true);
+        });
+        it('should remove the handler (with scope)', function (){
+            var scope = 'scope';
+            var myHandler = function (){};
+            var myBind = function (){myHandler()};
+            testBot._plugins[scope] = {
+                nextId: 1,
+                0: {
+                    handler: myHandler,
+                    events: {
+                        'banana': myBind
+                    }
+                }
+            };
+            testBot.deregister(0,scope);
+            expect(testBot._plugins[scope][0]).to.be.equal(undefined);
+        });
+        it('should remove all bound events for a deregistered handler (without scope)', function (){
+            var myHandler = function (){};
+            var myBind = function (){myHandler()};
+            testBot._plugins[0] = {
+                handler: myHandler,
+                events: {
+                    'banana': myBind
+                }
+            };
+            testBot.deregister(0);
+            expect(testBot._irc.removeListener.calledWith('banana', myBind)).to.be.equal(true);
+        });
+        it('should remove the handler (without scope)', function (){
+            var myHandler = function (){};
+            var myBind = function (){myHandler()};
+            testBot._plugins[0] = {
+                handler: myHandler,
+                events: {
+                    'banana': myBind
+                }
+            };
+            testBot.deregister(0);
+            expect(testBot._plugins[0]).to.be.equal(undefined);
+        });
+        it('should throw an error if the handlerId is not an int', function (){
+            expect(testBot.deregister.bind(testBot, 'nextId')).to.throw(Error);
+            expect(testBot.deregister.bind(testBot, {})).to.throw(Error);
+        });
+        it('should silently fail if the handlerId is not present (with scope)', function (){
+            var scope = 'scope';
+            var myHandler = function (){};
+            testBot._plugins[scope] = {
+                nextId: 1
+            };
+            expect(testBot.deregister.bind(testBot, 0, scope)).to.not.throw(Error);
+        });
+        it('should silently fail if the handlerId is not present (without scope)', function (){
+            var myHandler = function (){};
+            testBot._plugins = {
+                nextId: 1
+            };
+            expect(testBot.deregister.bind(testBot, 0)).to.not.throw(Error);
+        });
     });
 });
